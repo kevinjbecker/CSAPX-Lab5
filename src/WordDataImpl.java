@@ -56,10 +56,13 @@ public class WordDataImpl implements WordData
             System.out.println("Your file cannot be found. Please try again.");
         }
     }
+
     @Override
     public void dumpData()
     {
-
+        // attempting to use lambda expressions (for learning about them)
+        // runs a lambda foreach over the entire words HashMap and dumps each word.
+        words.forEach((key, value) -> System.out.println(value.dumpWord()));
     }
     @Override
     public Collection<String> words()

@@ -27,6 +27,20 @@ public class Word
         return years.containsKey(year) ? years.get(year) : -1;
     }
 
+    public String dumpWord()
+    {
+        String toReturn = "";
+
+        //"word='"+ this.word + "', count=" + value + ", year=" + key + "\n"
+
+        for(Map.Entry<Integer, Long> entry : years.entrySet())
+        {
+            toReturn += "word='"+ this.word + "', count=" + entry.getValue() + ", year=" + entry.getKey() + "\n";
+        }
+
+        return toReturn;
+    }
+
     public long getData(int startYear, int endYear)
     {
         long totalOccurrences = 0;
