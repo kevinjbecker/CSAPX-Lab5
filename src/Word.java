@@ -9,61 +9,92 @@ import java.util.Map;
 
 public class Word
 {
-    private Map<Integer, Long> years;
+    private Map<Integer, Long> years = new HashMap<>();
     private String word;
 
+    /**
+     * Constructs a new Word object.
+     * @param word A String which is the word.
+     */
     Word(String word)
     {
         this.word = word;
-        years = new HashMap<>();
     }
 
+    /**
+     * Adds data for a given year that the word has data for.
+     * @param year The year which the word was found.
+     * @param numberOfOccurrencesOfWord The number of occurrences of the word in year
+     * @return true or false; true if the data was added, false if the year already has data.
+     */
     boolean addDataForYear(int year, long numberOfOccurrencesOfWord)
     {
+        // If there already is data for the year, return false
         if(years.containsKey(year))
-        {
             return false;
-        }
+
+        // Otherwise we can put this and return true
         years.put(year, numberOfOccurrencesOfWord);
         return true;
     }
 
+    /**
+     * Gets the data of the word for all of the years it has data for.
+     * @return A long-integer representing the number of occurrences the word had in the entire data set.
+     */
     long getData()
     {
         long totalOccurrences = 0;
 
+        // Performs a foreach loop on each entry summing the total number of occurrences of word
         for(Map.Entry<Integer, Long> entry : years.entrySet())
-        {
-            // System.out.println(entry.getValue());
             totalOccurrences += entry.getValue();
-        }
+
         return totalOccurrences;
     }
 
+    /**
+     * Gets the data of the word in the specified year range.
+     * @param startYear The start year to get data for.
+     * @param endYear The end year to get data for.
+     * @return A long-integer representing the number of occurrences the word had in the year range.
+     */
     long getData(int startYear, int endYear)
     {
         long totalOccurrences = 0;
 
-        for(int i = startYear; i <= endYear; i++)
+        // Loops through each year in the specified range and sums the occurrences of word
+        for(int year = startYear; year <= endYear; year++)
         {
-            if(years.containsKey(i))
+            // If there is a data-point for the year
+            if(years.containsKey(year))
             {
-                totalOccurrences += years.get(i);
+                totalOccurrences += years.get(year);
             }
         }
+
         return totalOccurrences;
     }
 
+    /**
+     * Generates a String which contains each data-point for the word in the style: "word='<em>word</em>', count=<em>count</em>, year=<em>year</em>"
+     * @return a String with each data-point of the word.
+     */
     @Override
     public String toString()
     {
-        StringBuilder toReturn = new StringBuilder();
+        String toString = "";
 
-        years.forEach((key, value) -> toReturn.append("word='"+ this.word + "', count=" + value + ", year=" + key + "\n"));
+        for(Map.Entry<Integer,Long> year : years.entrySet())
+        {
+            toString += "word='"+ this.word + "', count=" + year.getValue() + ", year=" + year.getKey() + "\n";
+        }
 
-        return toReturn.toString();
+        return toString;
     }
 
-    /* Accessors are not needed for this class. The only operations that need to be done with the fields are completed
-     with the methods.*/
+    /*
+     * Accessors are not needed for this class. The only operations that need to be done with the fields are completed
+     * with the methods.
+     */
 }
