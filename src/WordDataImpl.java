@@ -35,14 +35,17 @@ public class WordDataImpl implements WordData
 
     private void addWordIfNeeded(String [] word_line)
     {
-        if(words.containsKey(word_line[0]))
+        if(!words.containsKey(word_line[0]))
             words.put(word_line[0], new Word(word_line[0]));
     }
 
     private void addYearData(String [] word_line)
     {
         Word word = words.get(word_line[0]);
-        word.addDataForYear(Integer.parseInt(word_line[1]), Long.parseLong(word_line[2]));
+        if(!word.addDataForYear(Integer.parseInt(word_line[1]), Long.parseLong(word_line[2])))
+        {
+            System.out.println("Duplicate year was found, the first value is being used.");
+        }
     }
 
     public static void main(String[] args)
@@ -50,6 +53,7 @@ public class WordDataImpl implements WordData
         try
         {
             WordDataImpl words = new WordDataImpl(args[0]);
+            System.out.println("Count for word 'airport' is " +  words.getCountFor("airport", 2007));
         }
         catch (FileNotFoundException e)
         {
@@ -62,7 +66,9 @@ public class WordDataImpl implements WordData
     {
         // attempting to use lambda expressions (for learning about them)
         // runs a lambda foreach over the entire words HashMap and dumps each word.
-        words.forEach((key, value) -> System.out.println(value.dumpWord()));
+        // dumpWord() ends on a new line character so this only needs to be "print" and not "println"
+
+        words.forEach((key, value) -> System.out.print(value.dumpWord()));
     }
     @Override
     public Collection<String> words()
@@ -71,24 +77,25 @@ public class WordDataImpl implements WordData
     }
     @Override
     public long totalWords() {
-        return 0;
+        return words.size();
     }
     @Override
     public int getRankFor(String word) {
         return 0;
     }
     @Override
-    public int getRankFor(String word, int startYear, int endYear) {
+    public int getRankFor(String word, int startYear, int endYear)
+    {
         return 0;
     }
     @Override
     public long getCountFor(String word)
     {
-        return 0;
+        return words.containsKey(word) ? words.get(word).getData() : 0;
     }
     @Override
     public long getCountFor(String word, int startYear, int endYear)
     {
-        return 0;
+        return words.containsKey(word) ? words.get(word).getData(startYear, endYear) : 0;
     }
 }
