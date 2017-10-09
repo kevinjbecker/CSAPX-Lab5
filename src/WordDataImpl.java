@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 public class WordDataImpl implements WordData
 {
     private Map<String, Word> words;
+    private long numWordsReadIn = 0;
 
     /**
      * Read 1-gram data from a file into an internal data structure for further processing.
@@ -27,6 +28,7 @@ public class WordDataImpl implements WordData
         while(in.hasNextLine())
         {
             String line = in.nextLine();
+            ++numWordsReadIn;
             // this is my PHP brain reminding me what each index is.
             // tokenized line: 0 => word, 1 => year, 2 => number of occurrences in year
             String [] tokenized_line = line.split(",\\s*");
@@ -41,7 +43,7 @@ public class WordDataImpl implements WordData
      */
     private void addWordIfNeeded(String word)
     {
-        if(!words.containsKey(word))
+        if(!words.containsKey(word.toLowerCase()))
             words.put(word, new Word(word));
     }
 
@@ -56,27 +58,25 @@ public class WordDataImpl implements WordData
     {
         // We don't have to check if the word exists because no erroneous input will be given to this method
         // It is private and therefore we know when it's going to be called.
-        Word getWord = words.get(word);
+        // toLowerCase() is used just in case the data used has variable case words.
+        Word getWord = words.get(word.toLowerCase());
 
         if(!getWord.addDataForYear(year, occurrences))
             System.out.println("Duplicate year was found, the first value is being used.");
     }
 
+
+    /**
+     * Will remove this
+     * @param args
+     */
     public static void main(String[] args)
     {
         try
         {
             System.out.println("File read-in begun.");
             WordDataImpl words = new WordDataImpl(args[0]);
-            System.out.println("File read-in completed.\nPerforming rank on word \"big\".");
-
-            long start = System.nanoTime();
-
-            System.out.println("Computed rank: " + words.getRankFor("big"));
-
-            long end = System.nanoTime();
-
-            System.out.println("Rank computation took " + ((end - start) / 1000000) + " milliseconds.");
+            System.out.println("File read-in completed.");
         }
         catch (FileNotFoundException e)
         {
@@ -98,7 +98,6 @@ public class WordDataImpl implements WordData
     {
         List<String> wordsList = new ArrayList<>();
 
-        // more lambda expressions test.
         words.forEach((key, value) -> wordsList.add(key));
 
         return wordsList;
@@ -107,43 +106,73 @@ public class WordDataImpl implements WordData
     @Override
     public long totalWords()
     {
-        return words.size();
+        // There was no reason to continually have to compute this, so I saved it as a field.
+        return numWordsReadIn;
     }
 
     @Override
     public int getRankFor(String word)
     {
-        // Saves compute time is the word isn't in the list.
+        // Saves compute time if the word isn't in the list.
         // This is the only check we need to perform since we're performing the rank on the entire list.
-        if(!words.containsKey(word))
+        if(!words.containsKey(word.toLowerCase()))
             return UNRANKED;
 
         Map<String, Long> unsortedWordHashMap = new HashMap<>();
-
         words.forEach((key, value) -> unsortedWordHashMap.put(key, value.getData()));
 
-
-
-        List<String> sortedWordKeyList = new ArrayList<>(unsortedWordHashMap.entrySet().stream()
-                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
-                        (oldValue, newValue) -> oldValue, LinkedHashMap::new)).keySet());
+        List<String> sortedWordKeyList = sortWordHashMap(unsortedWordHashMap);
 
         // The + 1 at the end is so the rank isn't the index of the item, but rather the correct rank.
         // I.E. the highest ranked word is 1 not 0.
-        return sortedWordKeyList.indexOf(word) + 1;
+        return sortedWordKeyList.indexOf(word.toLowerCase()) + 1;
     }
 
     @Override
     public int getRankFor(String word, int startYear, int endYear)
     {
-        return 0;
+        // Saves compute time if the word isn't in the list.
+        // This is the only check we need to perform since we're performing the rank on the entire list.
+        if(!words.containsKey(word.toLowerCase()))
+            return UNRANKED;
+
+        Map<String, Long> unsortedWordHashMap = new HashMap<>();
+        words.forEach((key, value) -> unsortedWordHashMap.put(key, value.getData(startYear, endYear)));
+
+        List<String> sortedWordKeyList = sortWordHashMap(unsortedWordHashMap);
+
+        // The + 1 at the end is so the rank isn't the index of the item, but rather the correct rank.
+        // I.E. the highest ranked word is 1 not 0.
+        return sortedWordKeyList.indexOf(word.toLowerCase()) + 1;
+    }
+
+    private List<String> sortWordHashMap(Map<String, Long> unsortedWordHashMap)
+    {
+        /* Once the map is sorted then there is no reason to keep their values. The keys which are the words
+         * are sorted so the sorted results are dumped to an ArrayList of String objects.
+         * The lambda expression words as outlined below:
+         *
+         * 1. Explodes the unsortedHashMap into an entry set (i.e. makes a set of Map.Entry<K,V> items.
+         *
+         * 2. Puts the entry set into a stream.
+         *
+         * 3. The stream is sorted using the comparingByValue() method using Comparator.reverseOrder().
+         *    As a note: reverse ordering is used over natural ordering because a word's rank
+         *    is determined by its index in the ArrayList. So instead of naturally sorting the words
+         *    and then reversing the list after, Comparator's reverse sorting is used.
+         *
+         * 4. The now sorted set is put into an ArrayList of the keys (which are the words) and returned.
+        */
+        return new ArrayList<>( unsortedWordHashMap.entrySet().stream()
+                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+                        (previous, current) -> previous, LinkedHashMap::new)).keySet() );
     }
 
     @Override
     public long getCountFor(String word)
     {
-        return words.containsKey(word) ? words.get(word).getData() : 0;
+        return words.containsKey(word.toLowerCase()) ? words.get(word.toLowerCase()).getData() : 0;
     }
 
     @Override
