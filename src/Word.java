@@ -27,20 +27,6 @@ public class Word
         return years.containsKey(year) ? years.get(year) : -1;
     }
 
-    public String dumpWord()
-    {
-        StringBuilder toReturn = new StringBuilder();
-
-        //"word='"+ this.word + "', count=" + value + ", year=" + key + "\n"
-
-        for(Map.Entry<Integer, Long> entry : years.entrySet())
-        {
-            toReturn.append("word='"+ this.word + "', count=" + entry.getValue() + ", year=" + entry.getKey() + "\n");
-        }
-
-        return toReturn.toString();
-    }
-
     public long getData(int startYear, int endYear)
     {
         long totalOccurrences = 0;
@@ -61,16 +47,24 @@ public class Word
 
         for(Map.Entry<Integer, Long> entry : years.entrySet())
         {
-            System.out.println(entry.getValue());
+            // System.out.println(entry.getValue());
             totalOccurrences += entry.getValue();
         }
         return totalOccurrences;
     }
 
-    public String getWord()
+    @Override
+    public String toString()
     {
-        return this.word;
+        StringBuilder toReturn = new StringBuilder();
+
+        //"word='"+ this.word + "', count=" + value + ", year=" + key + "\n"
+
+        years.forEach((key, value) -> toReturn.append("word='"+ this.word + "', count=" + value + ", year=" + key + "\n"));
+
+        return toReturn.toString();
     }
 
-    //not going to include a
+    /* Accessors are not needed for this class. The only operations that need to be done with the fields are completed
+     with the methods.*/
 }
