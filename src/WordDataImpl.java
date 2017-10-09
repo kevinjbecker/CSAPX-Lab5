@@ -1,5 +1,3 @@
-import com.sun.org.apache.xpath.internal.SourceTree;
-
 import java.util.*;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -20,7 +18,7 @@ public class WordDataImpl implements WordData
      * @param fileName the name of the 1-gram data file.
      * @throws FileNotFoundException if the file cannot be opened.
      */
-    public WordDataImpl (String fileName) throws FileNotFoundException
+    WordDataImpl (String fileName) throws FileNotFoundException
     {
         Scanner in = new Scanner(new File(fileName));
         words = new HashMap<>();
@@ -50,7 +48,7 @@ public class WordDataImpl implements WordData
     /**
      * Adds the year data to the Word. Word adds it to its contained HashMap with the year as the key and the
      * occurrences as the value.
-     * @param word the String of the word which is being modified
+     * @param word the String of the word which is being modified.
      * @param year the year that is being added to the Word.
      * @param occurrences the number of occurrences the word appeared in year.
      */
@@ -67,8 +65,8 @@ public class WordDataImpl implements WordData
 
 
     /**
-     * Will remove this
-     * @param args
+     * Will remove this.
+     * @param args the arguments
      */
     public static void main(String[] args)
     {
@@ -77,6 +75,8 @@ public class WordDataImpl implements WordData
             System.out.println("File read-in begun.");
             WordDataImpl words = new WordDataImpl(args[0]);
             System.out.println("File read-in completed.");
+
+            System.out.println(words.getRankFor("the"));
         }
         catch (FileNotFoundException e)
         {
@@ -84,6 +84,9 @@ public class WordDataImpl implements WordData
         }
     }
 
+    /**
+     * The dump data dumps all of the data that was read in to the console.
+     */
     @Override
     public void dumpData()
     {
@@ -93,6 +96,10 @@ public class WordDataImpl implements WordData
         words.forEach((key, value) -> System.out.print(value));
     }
 
+    /**
+     * Collects all of the words into an iterable collection of Strings.
+     * @return A Collection of String objects, in this case a List.
+     */
     @Override
     public Collection<String> words()
     {
@@ -103,6 +110,11 @@ public class WordDataImpl implements WordData
         return wordsList;
     }
 
+    /**
+     * Gives the total number of words that were initially read in. This is better described as number of lines in the
+     * source file since any duplicate words (i.e. word data for different years) are treated as different words.
+     * @return A long of the number of words that were read in.
+     */
     @Override
     public long totalWords()
     {
@@ -110,6 +122,11 @@ public class WordDataImpl implements WordData
         return numWordsReadIn;
     }
 
+    /**
+     * Computes the rank of a word for the entire data set.
+     * @param word the word to be looked up.
+     * @return An int representing the rank of the word for the entire data set.
+     */
     @Override
     public int getRankFor(String word)
     {
@@ -128,12 +145,18 @@ public class WordDataImpl implements WordData
         return sortedWordKeyList.indexOf(word.toLowerCase()) + 1;
     }
 
+    /**
+     * Computes the rank of a word for a given year period in the data set.
+     * @param word the word to be looked up.
+     * @param startYear the first year of the range of time desired.
+     * @param endYear the last year of the range of time desired.
+     * @return An int representing the rank of the word for the entire data set.
+     */
     @Override
     public int getRankFor(String word, int startYear, int endYear)
     {
-        // Saves compute time if the word isn't in the list.
-        // This is the only check we need to perform since we're performing the rank on the entire list.
-        if(!words.containsKey(word.toLowerCase()))
+        // Saves compute time if the word isn't in the list or if its number of occurrences is 0 in the range.
+        if(!words.containsKey(word.toLowerCase()) || words.get(word.toLowerCase()).getData(startYear, endYear) == 0)
             return UNRANKED;
 
         Map<String, Long> unsortedWordHashMap = new HashMap<>();
@@ -146,6 +169,12 @@ public class WordDataImpl implements WordData
         return sortedWordKeyList.indexOf(word.toLowerCase()) + 1;
     }
 
+    /**
+     * This sorts an unsorted HashMap of words and their occurrences into a sorted List of the words based on its
+     * occurrences.
+     * @param unsortedWordHashMap the unsorted HashMap of words.
+     * @return A List of Strings representing the sorted words by occurrences.
+     */
     private List<String> sortWordHashMap(Map<String, Long> unsortedWordHashMap)
     {
         /* Once the map is sorted then there is no reason to keep their values. The keys which are the words
@@ -163,10 +192,10 @@ public class WordDataImpl implements WordData
          *
          * 4. The now sorted set is put into an ArrayList of the keys (which are the words) and returned.
         */
-        return new ArrayList<>( unsortedWordHashMap.entrySet().stream()
-                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
-                        (previous, current) -> previous, LinkedHashMap::new)).keySet() );
+        return new ArrayList<>( unsortedWordHashMap.entrySet()
+                .stream()
+                .sorted(Map.Entry.<String,Long>comparingByValue().reversed())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (value1, value2) -> value1, LinkedHashMap::new)).keySet() );
     }
 
     @Override

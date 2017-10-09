@@ -1,18 +1,24 @@
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * The Word class is an extension for the WordData class. It houses a word and each year's data.
+ *
+ * @author Kevin Becker
+ */
+
 public class Word
 {
     private Map<Integer, Long> years;
     private String word;
 
-    public Word(String word)
+    Word(String word)
     {
         this.word = word;
         years = new HashMap<>();
     }
 
-    public boolean addDataForYear(int year, long numberOfOccurrencesOfWord)
+    boolean addDataForYear(int year, long numberOfOccurrencesOfWord)
     {
         if(years.containsKey(year))
         {
@@ -22,12 +28,19 @@ public class Word
         return true;
     }
 
-    public long getData(int year)
+    long getData()
     {
-        return years.containsKey(year) ? years.get(year) : -1;
+        long totalOccurrences = 0;
+
+        for(Map.Entry<Integer, Long> entry : years.entrySet())
+        {
+            // System.out.println(entry.getValue());
+            totalOccurrences += entry.getValue();
+        }
+        return totalOccurrences;
     }
 
-    public long getData(int startYear, int endYear)
+    long getData(int startYear, int endYear)
     {
         long totalOccurrences = 0;
 
@@ -41,24 +54,10 @@ public class Word
         return totalOccurrences;
     }
 
-    public long getData()
-    {
-        long totalOccurrences = 0;
-
-        for(Map.Entry<Integer, Long> entry : years.entrySet())
-        {
-            // System.out.println(entry.getValue());
-            totalOccurrences += entry.getValue();
-        }
-        return totalOccurrences;
-    }
-
     @Override
     public String toString()
     {
         StringBuilder toReturn = new StringBuilder();
-
-        //"word='"+ this.word + "', count=" + value + ", year=" + key + "\n"
 
         years.forEach((key, value) -> toReturn.append("word='"+ this.word + "', count=" + value + ", year=" + key + "\n"));
 
