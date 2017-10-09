@@ -54,6 +54,16 @@ public class Word
     }
 
     /**
+     * Gets the data of the word for all of the years it has data for.
+     * @param year The year that should be searched for.
+     * @return A long-integer representing the number of occurrences the word had in the entire data set.
+     */
+    long getData(int year)
+    {
+        return years.containsKey(year) ? years.get(year) : 0;
+    }
+
+    /**
      * Gets the data of the word in the specified year range.
      * @param startYear The start year to get data for.
      * @param endYear The end year to get data for.

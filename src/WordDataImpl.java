@@ -1,7 +1,7 @@
 import java.util.*;
+import java.util.stream.Collectors;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.stream.Collectors;
 
 /**
  * An implementation of WordData that assumes that the data are stored in files in Google's 1-gram format (word, year, count)
@@ -165,6 +165,33 @@ public class WordDataImpl implements WordData
     /**
      * Computes the rank of a word for a given year period in the data set.
      * @param word the word to be looked up.
+     * @param year the first year of the range of time desired.
+     * @return An int representing the rank of the word for the entire data set.
+     */
+    @Override
+    public int getRankFor(String word, int year)
+    {
+        // Saves compute time if the word isn't in the list or if its number of occurrences is 0 in the range
+        if(!words.containsKey(word.toLowerCase()) || words.get(word.toLowerCase()).getData(year) == 0)
+            return UNRANKED;
+
+        // Creates a new empty HashMap
+        Map<String, Long> unsortedWordHashMap = new HashMap<>();
+
+        // Goes through words and adds each word and the number of occurrences in the year for each word to the HashMap
+        words.forEach((key, value) -> unsortedWordHashMap.put(key, value.getData(year)));
+
+        // Calls sortWordMap to sort the HashMap and gets the ordered List of keys based on their occurrences
+        List<String> sortedWordKeyList = sortWordMap(unsortedWordHashMap);
+
+        // The + 1 at the end is so the rank isn't the index of the item, but rather the correct rank
+        // I.E. the highest ranked word is 1 not 0
+        return sortedWordKeyList.indexOf(word.toLowerCase()) + 1;
+    }
+
+    /**
+     * Computes the rank of a word for a given year period in the data set.
+     * @param word the word to be looked up.
      * @param startYear the first year of the range of time desired.
      * @param endYear the last year of the range of time desired.
      * @return An int representing the rank of the word for the entire data set.
@@ -230,6 +257,19 @@ public class WordDataImpl implements WordData
     {
         // Returns the total number of occurrences for the word in the data set if it exists, otherwise returns 0
         return words.containsKey(word.toLowerCase()) ? words.get(word.toLowerCase()).getData() : 0;
+    }
+
+    /**
+     * Gets the count of a word for a given single year. (Slightly more efficient than the default).
+     * @param word the word to be looked up.
+     * @param year the year to be considered.
+     * @return A long-integer representing the number of occurrences of the word in the specified year.
+     */
+    @Override
+    public long getCountFor(String word, int year)
+    {
+        // Returns the total number of occurrences for the word in the year if it exists, otherwise returns 0
+        return words.containsKey(word.toLowerCase()) ? words.get(word.toLowerCase()).getData(year) : 0;
     }
 
     /**
