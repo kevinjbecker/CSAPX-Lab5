@@ -195,7 +195,7 @@ public class WordDataImpl implements WordData
         return new ArrayList<>( unsortedWordHashMap.entrySet()
                 .stream()
                 .sorted(Map.Entry.<String,Long>comparingByValue().reversed())
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (value1, value2) -> value1, LinkedHashMap::new)).keySet() );
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (collisionValue1, colissionValue2) -> collisionValue1, LinkedHashMap::new)).keySet() );
     }
 
     @Override
