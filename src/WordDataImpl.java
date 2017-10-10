@@ -11,6 +11,7 @@ import java.io.FileNotFoundException;
 public class WordDataImpl implements WordData
 {
     private Map<String, Word> words = new HashMap<>();
+    private Collection<String> readWords = new ArrayList<>();
     private long numWordsReadIn = 0;
 
     /**
@@ -52,6 +53,9 @@ public class WordDataImpl implements WordData
     {
         // Puts the new word into the HashMap with a key of the word and a value of a new word.
         words.put(word, new Word(word));
+
+        // Adds the word to the readWords Collection. Again saves compute time.
+        this.readWords.add(word);
     }
 
     /**
@@ -113,14 +117,9 @@ public class WordDataImpl implements WordData
     @Override
     public Collection<String> words()
     {
-        // Creates a new List called wordList
-        List<String> wordList = new ArrayList<>();
-
-        // Uses a lambda expression to iterate through words and add it to the List.
-        words.forEach((key, value) -> wordList.add(key));
-
-        // Returns wordList
-        return wordList;
+        // Since all of the words are collected already, it saves time by saving the words to a Collection when
+        // the program is starting up
+        return readWords;
     }
 
     /**
