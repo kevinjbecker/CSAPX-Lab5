@@ -228,11 +228,16 @@ public class WordDataImpl implements WordData
          *
          * 4. The now sorted set is put into an ArrayList of the keys (which are the words) and returned
         */
-        return new ArrayList<>( unsortedWordMap.entrySet()
+        return new ArrayList<>(
+                unsortedWordMap.entrySet()
                 .stream()
-                .sorted(Map.Entry.<String,Long>comparingByValue().reversed())
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
-                        (collisionValue1, collisionValue2) -> collisionValue1, LinkedHashMap::new))
+                .sorted(
+                        Map.Entry.comparingByValue(Comparator.reverseOrder())
+                )
+                .collect(
+                        Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+                                (collisionValue1, collisionValue2) -> collisionValue1, LinkedHashMap::new)
+                )
                 .keySet()
         );
     }
