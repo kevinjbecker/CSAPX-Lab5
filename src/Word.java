@@ -42,7 +42,7 @@ public class Word
      * Gets the data of the word for all of the years it has data for.
      * @return A long-integer representing the number of occurrences the word had in the entire data set.
      */
-    long getData()
+    long getCount()
     {
         long totalOccurrences = 0;
 
@@ -58,7 +58,7 @@ public class Word
      * @param year The year that should be searched for.
      * @return A long-integer representing the number of occurrences the word had in the entire data set.
      */
-    long getData(int year)
+    long getCount(int year)
     {
         return years.containsKey(year) ? years.get(year) : 0;
     }
@@ -69,7 +69,7 @@ public class Word
      * @param endYear The end year to get data for.
      * @return A long-integer representing the number of occurrences the word had in the year range.
      */
-    long getData(int startYear, int endYear)
+    long getCount(int startYear, int endYear)
     {
         long totalOccurrences = 0;
 

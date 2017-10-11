@@ -50,23 +50,6 @@ public class WordDataImpl implements WordData
     }
 
     /**
-     * It seemed like a waste of compute time to continually have to recompute the overall rank when running zipf,
-     * so this method gets the overall rank for each word and returns that in a list.
-     */
-    private List<String> getOverallRanks()
-    {
-        // Creates a new empty HashMap
-        Map<String, Long> unsortedWordHashMap = new HashMap<>();
-
-        // Goes through words and adds each word and the total number of occurrences of the word to the HashMap
-        words.forEach((key, value) -> unsortedWordHashMap.put(key, value.getData()));
-
-        // Calls sortWordMap to sort the HashMap and gets the ordered List of keys based on their occurrences
-        // Assigns it to the field overallRanks
-        return sortWordMap(unsortedWordHashMap);
-    }
-
-    /**
      * Add word if needed is used when the file is being read in.
      * @param word the word that is being added to the HashMap.
      */
@@ -101,27 +84,6 @@ public class WordDataImpl implements WordData
          */
         if(!getWord.addDataForYear(year, occurrences))
             System.out.println("Duplicate year was found, the first value is being used.");
-    }
-
-
-    /**
-     * Will remove this.
-     * @param args the arguments
-     */
-    public static void main(String[] args)
-    {
-        try
-        {
-            System.out.println("File read-in begun.");
-            WordDataImpl words = new WordDataImpl(args[0]);
-            System.out.println("File read-in completed.");
-
-            System.out.println(words.getRankFor("atomic"));
-        }
-        catch (FileNotFoundException e)
-        {
-            System.out.println("Your file cannot be found. Please try again.");
-        }
     }
 
     /**
@@ -172,6 +134,23 @@ public class WordDataImpl implements WordData
     }
 
     /**
+     * It seemed like a waste of compute time to continually have to recompute the overall rank when running zipf,
+     * so this method gets the overall rank for each word and returns that in a list.
+     */
+    private List<String> getOverallRanks()
+    {
+        // Creates a new empty HashMap
+        Map<String, Long> unsortedWordHashMap = new HashMap<>();
+
+        // Goes through words and adds each word and the total number of occurrences of the word to the HashMap
+        words.forEach((key, value) -> unsortedWordHashMap.put(key, value.getCount()));
+
+        // Calls sortWordMap to sort the HashMap and gets the ordered List of keys based on their occurrences
+        // Assigns it to the field overallRanks
+        return sortWordMapByValue(unsortedWordHashMap);
+    }
+
+    /**
      * Computes the rank of a word for a given year period in the data set.
      * @param word the word to be looked up.
      * @param year the first year of the range of time desired.
@@ -181,17 +160,17 @@ public class WordDataImpl implements WordData
     public int getRankFor(String word, int year)
     {
         // Saves compute time if the word isn't in the list or if its number of occurrences is 0 in the range
-        if(!words.containsKey(word.toLowerCase()) || words.get(word.toLowerCase()).getData(year) == 0)
+        if(!words.containsKey(word.toLowerCase()) || words.get(word.toLowerCase()).getCount(year) == 0)
             return UNRANKED;
 
         // Creates a new empty HashMap
         Map<String, Long> unsortedWordHashMap = new HashMap<>();
 
         // Goes through words and adds each word and the number of occurrences in the year for each word to the HashMap
-        words.forEach((key, value) -> unsortedWordHashMap.put(key, value.getData(year)));
+        words.forEach((key, value) -> unsortedWordHashMap.put(key, value.getCount(year)));
 
         // Calls sortWordMap to sort the HashMap and gets the ordered List of keys based on their occurrences
-        List<String> sortedWordKeyList = sortWordMap(unsortedWordHashMap);
+        List<String> sortedWordKeyList = sortWordMapByValue(unsortedWordHashMap);
 
         // The + 1 at the end is so the rank isn't the index of the item, but rather the correct rank
         // I.E. the highest ranked word is 1 not 0
@@ -209,17 +188,17 @@ public class WordDataImpl implements WordData
     public int getRankFor(String word, int startYear, int endYear)
     {
         // Saves compute time if the word isn't in the list or if its number of occurrences is 0 in the range
-        if(!words.containsKey(word.toLowerCase()) || words.get(word.toLowerCase()).getData(startYear, endYear) == 0)
+        if(!words.containsKey(word.toLowerCase()) || words.get(word.toLowerCase()).getCount(startYear, endYear) == 0)
             return UNRANKED;
 
         // Creates a new empty HashMap
         Map<String, Long> unsortedWordHashMap = new HashMap<>();
 
         // Goes through words and adds each word and the number of occurrences in the range for each word to the HashMap
-        words.forEach((key, value) -> unsortedWordHashMap.put(key, value.getData(startYear, endYear)));
+        words.forEach((key, value) -> unsortedWordHashMap.put(key, value.getCount(startYear, endYear)));
 
         // Calls sortWordMap to sort the HashMap and gets the ordered List of keys based on their occurrences
-        List<String> sortedWordKeyList = sortWordMap(unsortedWordHashMap);
+        List<String> sortedWordKeyList = sortWordMapByValue(unsortedWordHashMap);
 
         // The + 1 at the end is so the rank isn't the index of the item, but rather the correct rank
         // I.E. the highest ranked word is 1 not 0
@@ -232,7 +211,7 @@ public class WordDataImpl implements WordData
      * @param unsortedWordMap the unsorted Map of Word objects.
      * @return A List of Strings representing the sorted words by occurrences.
      */
-    private List<String> sortWordMap(Map<String, Long> unsortedWordMap)
+    private List<String> sortWordMapByValue(Map<String, Long> unsortedWordMap)
     {
         /* The keys which are the words are sorted so the sorted results are dumped to an ArrayList of String objects
          * Once the map is sorted then there is no reason to keep their values which is why a List was preferred
@@ -253,7 +232,9 @@ public class WordDataImpl implements WordData
                 .stream()
                 .sorted(Map.Entry.<String,Long>comparingByValue().reversed())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
-                        (collisionValue1, collisionValue2) -> collisionValue1, LinkedHashMap::new)).keySet() );
+                        (collisionValue1, collisionValue2) -> collisionValue1, LinkedHashMap::new))
+                .keySet()
+        );
     }
 
     /**
@@ -265,7 +246,7 @@ public class WordDataImpl implements WordData
     public long getCountFor(String word)
     {
         // Returns the total number of occurrences for the word in the data set if it exists, otherwise returns 0
-        return words.containsKey(word.toLowerCase()) ? words.get(word.toLowerCase()).getData() : 0;
+        return words.containsKey(word.toLowerCase()) ? words.get(word.toLowerCase()).getCount() : 0;
     }
 
     /**
@@ -278,7 +259,7 @@ public class WordDataImpl implements WordData
     public long getCountFor(String word, int year)
     {
         // Returns the total number of occurrences for the word in the year if it exists, otherwise returns 0
-        return words.containsKey(word.toLowerCase()) ? words.get(word.toLowerCase()).getData(year) : 0;
+        return words.containsKey(word.toLowerCase()) ? words.get(word.toLowerCase()).getCount(year) : 0;
     }
 
     /**
@@ -292,6 +273,6 @@ public class WordDataImpl implements WordData
     public long getCountFor(String word, int startYear, int endYear)
     {
         // Returns the total number of occurrence for the word in the year range if it exists, otherwise returns 0
-        return words.containsKey(word) ? words.get(word).getData(startYear, endYear) : 0;
+        return words.containsKey(word) ? words.get(word).getCount(startYear, endYear) : 0;
     }
 }
