@@ -13,7 +13,7 @@ public class WordDataImpl implements WordData
 
     private Map<String, Word> words = new HashMap<>();
     private List<String> overallRanks= new ArrayList<>();
-    private Collection<String> readWords = new ArrayList<>();
+    private Collection<String> wordsReadIn = new ArrayList<>();
     private long totalWords = 0;
 
     /**
@@ -48,8 +48,8 @@ public class WordDataImpl implements WordData
     }
 
     /**
-     * It seemed like a waste of compute time to continually have to recompute the overall rank, so this method gets the
-     * overall rank for each word and sets it to a field.
+     * It seemed like a waste of compute time to continually have to recompute the overall rank when running zipf,
+     * so this method gets the overall rank for each word and returns that in a list.
      */
     private List<String> getOverallRanks()
     {
@@ -74,7 +74,7 @@ public class WordDataImpl implements WordData
         words.put(word, new Word(word));
 
         // Adds the word to the readWords Collection. Again saves compute time.
-        this.readWords.add(word);
+        this.wordsReadIn.add(word);
     }
 
     /**
@@ -141,7 +141,7 @@ public class WordDataImpl implements WordData
     {
         // Since all of the words are collected already, it saves time by saving the words to a Collection when
         // the program is starting up
-        return readWords;
+        return wordsReadIn;
     }
 
     /**
