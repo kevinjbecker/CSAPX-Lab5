@@ -10,9 +10,11 @@ import java.io.FileNotFoundException;
  */
 public class WordDataImpl implements WordData
 {
+
     private Map<String, Word> words = new HashMap<>();
+    private List<String> overallRanks= new ArrayList<>();
     private Collection<String> readWords = new ArrayList<>();
-    private long numWordsReadIn = 0;
+    private long totalWords = 0;
 
     /**
      * Read 1-gram data from a file into an internal data structure for further processing.
@@ -32,10 +34,6 @@ public class WordDataImpl implements WordData
             // Reads in a line from the file
             String [] tokenizedLine = in.nextLine().split(",\\s*");
 
-            // Adds to the total number of words read in
-            // As according to the documentation, the number of words read in equates to the number of lines in the file
-            ++numWordsReadIn;
-
             // Adds the word to the HashMap if it is needed
             if(!words.containsKey(tokenizedLine[0].toLowerCase()))
                 addWord(tokenizedLine[0].toLowerCase());
@@ -43,6 +41,27 @@ public class WordDataImpl implements WordData
             // Add the data of the line being read in to the word
             addYearDataToWord(tokenizedLine[0].toLowerCase(), Integer.parseInt(tokenizedLine[1]), Long.parseLong(tokenizedLine[2]));
         }
+        // Gets the overall ranks of each word and then sets it to the field
+        // This saves compute time when running the zipf command because the rank for the total of each word will
+        // already be computed
+        this.overallRanks = getOverallRanks();
+    }
+
+    /**
+     * It seemed like a waste of compute time to continually have to recompute the overall rank, so this method gets the
+     * overall rank for each word and sets it to a field.
+     */
+    private List<String> getOverallRanks()
+    {
+        // Creates a new empty HashMap
+        Map<String, Long> unsortedWordHashMap = new HashMap<>();
+
+        // Goes through words and adds each word and the total number of occurrences of the word to the HashMap
+        words.forEach((key, value) -> unsortedWordHashMap.put(key, value.getData()));
+
+        // Calls sortWordMap to sort the HashMap and gets the ordered List of keys based on their occurrences
+        // Assigns it to the field overallRanks
+        return sortWordMap(unsortedWordHashMap);
     }
 
     /**
@@ -71,6 +90,9 @@ public class WordDataImpl implements WordData
         // It is private and therefore we know when it's going to be called.
         Word getWord = words.get(word);
 
+        // Because the totalWords never changes, we can generate this value when we're reading in the file.
+        totalWords += occurrences;
+
         /*
          * Attempts to add the data to the year, if it fails to add it, that means a duplicate year was
          * provided which isn't allowed
@@ -92,7 +114,7 @@ public class WordDataImpl implements WordData
             WordDataImpl words = new WordDataImpl(args[0]);
             System.out.println("File read-in completed.");
 
-            System.out.println(words.getRankFor("the"));
+            System.out.println(words.getRankFor("atomic"));
         }
         catch (FileNotFoundException e)
         {
@@ -130,8 +152,8 @@ public class WordDataImpl implements WordData
     @Override
     public long totalWords()
     {
-        // There was no reason to have to compute this on-the-fly, so I it was saved as a field
-        return numWordsReadIn;
+        // There was no reason to have to compute this on-the-fly, so it was saved as a field
+        return totalWords;
     }
 
     /**
@@ -142,23 +164,9 @@ public class WordDataImpl implements WordData
     @Override
     public int getRankFor(String word)
     {
-        // Saves compute time if the word isn't in the list.
-        // This is the only check we need to perform since we're performing the rank on the entire list.
-        if(!words.containsKey(word.toLowerCase()))
-            return UNRANKED;
-
-        // Creates a new empty HashMap
-        Map<String, Long> unsortedWordHashMap = new HashMap<>();
-
-        // Goes through words and adds each word and the total number of occurrences of the word to the HashMap
-        words.forEach((key, value) -> unsortedWordHashMap.put(key, value.getData()));
-
-        // Calls sortWordMap to sort the HashMap and gets the ordered List of keys based on their occurrences
-        List<String> sortedWordKeyList = sortWordMap(unsortedWordHashMap);
-
         // The + 1 at the end is so the rank isn't the index of the item, but rather the correct rank
         // I.E. the highest ranked word is 1 not 0
-        return sortedWordKeyList.indexOf(word.toLowerCase()) + 1;
+        return overallRanks.indexOf(word.toLowerCase()) + 1;
     }
 
     /**
