@@ -26,6 +26,7 @@ public class WordDataImpl implements WordData
         // Makes a new Scanner that reads from a new File pointing to fileName
         Scanner in = new Scanner(new File(fileName));
 
+        System.out.println("Reading in file \"" + fileName + "\"...");
         // Continues reading from the file until it has no more lines
         while(in.hasNextLine())
         {
@@ -41,6 +42,7 @@ public class WordDataImpl implements WordData
             // Add the data of the line being read in to the word
             addYearDataToWord(tokenizedLine[0].toLowerCase(), Integer.parseInt(tokenizedLine[1]), Long.parseLong(tokenizedLine[2]));
         }
+        System.out.println("File read in complete.");
         // Gets the overall ranks of each word and then sets it to the field
         // This saves compute time when running the zipf command because the rank for the total of each word will
         // already be computed
